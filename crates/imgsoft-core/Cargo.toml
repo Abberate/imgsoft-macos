@@ -1,0 +1,29 @@
+[package]
+name = "imgsoft-core"
+description = "ImgSoft engine: decode, resize and re-encode images for the web at a target perceptual quality"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp", "gif", "tiff", "bmp", "tga", "qoi", "pnm"] }
+mozjpeg = "0.10.13"
+webp = { version = "0.3.1", default-features = false }
+ravif = "0.13.0"
+rgb = "0.8.53"
+oxipng = { version = "10.2.1", default-features = false, features = ["parallel"] }
+imagequant = { version = "4.4.1", default-features = false, features = ["threads"] }
+ssimulacra2 = "0.5.1"
+fast_image_resize = "6.2.0"
+moxcms = "0.8"
+rayon = "1.12.0"
+walkdir = "2.5.1"
+deunicode = "1.6.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.154"
+log = "0.4"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-core-foundation = "0.3.2"
+objc2-core-graphics = "0.3.2"
+objc2-image-io = "0.3.2"

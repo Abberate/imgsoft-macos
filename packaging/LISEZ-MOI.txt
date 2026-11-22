@@ -1,0 +1,87 @@
+IMGSOFT pour macOS — version 1.0.0
+Compresse les images de vos clients pour le web : la plus légère possible,
+sans différence visible.
+
+INSTALLATION
+1. Glissez « ImgSoft » sur le dossier « Applications ».
+2. Ouvrez l'app depuis le Launchpad ou le dossier Applications.
+3. Au premier lancement, macOS peut bloquer l'app (elle n'est pas signée
+   par un développeur Apple identifié). Dans ce cas :
+   Réglages Système > Confidentialité et sécurité > tout en bas,
+   cliquez « Ouvrir quand même », puis confirmez.
+   (Sur macOS 14 ou plus ancien : clic droit sur l'app > Ouvrir.)
+
+UTILISATION
+1. Glissez un dossier d'images (ou des fichiers) dans la fenêtre.
+2. Le dossier de sortie est proposé à côté (« nom-web ») ; changez-le si
+   besoin. Les originaux ne sont jamais modifiés.
+3. Choisissez la destination : Site web moderne (AVIF/WebP), WordPress
+   (WebP), Compatibilité max (JPEG/PNG) ou Archive HD (format d'origine).
+4. Cliquez « Compresser ». Cliquez ensuite sur une image pour comparer
+   l'original et le résultat (glissez le curseur, « 100 % » pour les
+   détails).
+
+CE QUE FAIT IMGSOFT
+- Qualité garantie : chaque image est encodée puis mesurée avec
+  SSIMULACRA2 ; ImgSoft garde la version la plus légère qui atteint la
+  qualité choisie (85 par défaut : aucune différence visible à 100 %).
+- Format optimal : AVIF, WebP (avec ou sans perte), MozJPEG ou PNG
+  optimisé (palette ou sans perte), selon le contenu et la destination.
+- Photos d'iPhone (HEIC), orientation corrigée, couleurs Display P3
+  converties en sRGB.
+- Redimensionnement de qualité (Lanczos en lumière linéaire), variantes
+  responsive pour srcset, manifeste JSON (dimensions) en option.
+- Métadonnées retirées (GPS, appareil photo), noms de fichiers web
+  (« Photo Été (1).JPG » → « photo-ete-1.avif »).
+- Outil en ligne de commande inclus :
+  /Applications/ImgSoft.app/Contents/MacOS/imgsoft --help
+
+COMPATIBILITÉ
+- macOS 11 Big Sur ou plus récent, Mac Apple Silicon et Intel.
+- La vérification de qualité des fichiers AVIF demande macOS 13 ou plus
+  récent (avant, ImgSoft utilise un réglage AVIF calibré).
+
+CRÉDITS
+- Moteurs : rav1e/ravif, libwebp, MozJPEG, oxipng, libimagequant,
+  SSIMULACRA2, fast_image_resize, moxcms, egui.
+- Police Poppins (SIL Open Font License 1.1).
+- Licence : GPL-3.0-or-later.
+
+-----------------------------------------------------------------------
+
+IMGSOFT for macOS — version 1.0.0
+Compresses your clients' images for the web: as small as possible, with
+no visible difference.
+
+INSTALLATION
+1. Drag "ImgSoft" onto the "Applications" folder.
+2. Open the app from Launchpad or the Applications folder.
+3. On first launch macOS may block the app (it is not signed by an
+   identified Apple developer). If so: System Settings > Privacy &
+   Security > at the bottom, click "Open Anyway", then confirm.
+   (macOS 14 or older: right-click the app > Open.)
+
+USE
+1. Drop a folder of images (or files) on the window.
+2. An output folder is suggested next to it ("name-web"); change it if
+   needed. Originals are never modified.
+3. Pick a destination: Modern website (AVIF/WebP), WordPress (WebP),
+   Maximum compatibility (JPEG/PNG) or HD archive (original format).
+4. Click "Compresser". Then click an image to compare the original and
+   the result (drag the split, "100 %" for details).
+
+WHAT IT DOES
+- Guaranteed quality: every image is encoded then measured with
+  SSIMULACRA2; ImgSoft keeps the smallest version that reaches the chosen
+  quality (85 by default: no visible difference at 100 %).
+- Best format: AVIF, WebP (lossy or lossless), MozJPEG or optimised PNG
+  (palette or lossless), depending on content and destination.
+- iPhone photos (HEIC), orientation fixed, Display P3 colours converted
+  to sRGB.
+- High-quality resizing (Lanczos in linear light), responsive variants
+  for srcset, optional JSON manifest (dimensions).
+- Metadata removed (GPS, camera), web-safe file names.
+- Command line tool included:
+  /Applications/ImgSoft.app/Contents/MacOS/imgsoft --help
+
+Licence: GPL-3.0-or-later. Poppins font: SIL Open Font License 1.1.

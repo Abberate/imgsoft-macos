@@ -1,0 +1,13 @@
+[package]
+name = "imgsoft-cli"
+description = "ImgSoft command line: compress a folder of images for the web"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "imgsoft"
+path = "src/main.rs"
+
+[dependencies]
+imgsoft-core.workspace = true

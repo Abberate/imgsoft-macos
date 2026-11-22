@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- B · Squeeze: a landscape held between two inward chevrons -->
+  <path d="M28 84L64 128L28 172" fill="none" stroke="#000" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M228 84L192 128L228 172" fill="none" stroke="#000" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="146" cy="82" r="15"/>
+  <path d="M84 178L118 126L138 152L150 138L172 178Z" stroke="#000" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M84 196H172" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+</svg>

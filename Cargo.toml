@@ -1,0 +1,20 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[workspace.dependencies]
+imgsoft-core = { path = "crates/imgsoft-core" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+# Image codecs are unusably slow without optimisations, even while developing.
+[profile.dev.package."*"]
+opt-level = 3

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- ImgSoft symbol: a picture frame squeezed at the waist -->
+  <path d="M70 42H186A34 34 0 0 1 220 76C220 98 200 108 200 128C200 148 220 158 220 180A34 34 0 0 1 186 214H70A34 34 0 0 1 36 180C36 158 56 148 56 128C56 108 36 98 36 76A34 34 0 0 1 70 42Z" fill="none" stroke="#000" stroke-width="22" stroke-linejoin="round"/>
+  <circle cx="158" cy="94" r="17"/>
+  <path d="M74 184L110 132L134 162L150 146L182 184Z" stroke="#000" stroke-width="10" stroke-linejoin="round"/>
+</svg>

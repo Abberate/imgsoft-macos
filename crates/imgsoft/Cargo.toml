@@ -1,0 +1,17 @@
+[package]
+name = "imgsoft"
+description = "ImgSoft — compress client images for the web at a guaranteed visual quality"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "imgsoft-app"
+path = "src/main.rs"
+
+[dependencies]
+imgsoft-core.workspace = true
+eframe = { version = "0.37", default-features = false, features = ["glow", "default_fonts", "persistence"] }
+egui = "0.37"
+rfd = "0.18.0"
+serde_json = "1.0.154"

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- A · Pinch: a picture frame squeezed at the waist -->
+  <path d="M68 44H188A32 32 0 0 1 220 76C220 100 204 108 204 128C204 148 220 156 220 180A32 32 0 0 1 188 212H68A32 32 0 0 1 36 180C36 156 52 148 52 128C52 108 36 100 36 76A32 32 0 0 1 68 44Z" fill="none" stroke="#000" stroke-width="20" stroke-linejoin="round"/>
+  <circle cx="160" cy="98" r="17"/>
+  <path d="M70 186L110 128L136 162L152 144L188 186Z" stroke="#000" stroke-width="8" stroke-linejoin="round"/>
+</svg>
