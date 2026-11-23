@@ -323,6 +323,34 @@ pub fn folder_icon(p: &Painter, center: Pos2, size: f32, color: Color32) {
     p.rect_filled(r, size * 0.12, color);
 }
 
+/// A picture: frame, sun and mountain (selected images, as opposed to a folder).
+pub fn image_icon(p: &Painter, center: Pos2, size: f32, color: Color32) {
+    let r = Rect::from_center_size(center, vec2(size, size * 0.8));
+    p.rect_filled(r, size * 0.14, color);
+    let inner = r.shrink(size * 0.12);
+    p.rect_filled(inner, size * 0.06, Color32::WHITE.gamma_multiply(0.9));
+    p.circle_filled(inner.min + vec2(inner.width() * 0.72, inner.height() * 0.3), size * 0.08, color);
+    let base = inner.bottom() - size * 0.02;
+    p.add(PathShape::convex_polygon(
+        vec![
+            pos2(inner.left() + size * 0.04, base),
+            pos2(inner.left() + inner.width() * 0.38, inner.top() + inner.height() * 0.38),
+            pos2(inner.left() + inner.width() * 0.66, base),
+        ],
+        color,
+        Stroke::NONE,
+    ));
+    p.add(PathShape::convex_polygon(
+        vec![
+            pos2(inner.left() + inner.width() * 0.5, base),
+            pos2(inner.left() + inner.width() * 0.72, inner.top() + inner.height() * 0.56),
+            pos2(inner.right() - size * 0.04, base),
+        ],
+        color,
+        Stroke::NONE,
+    ));
+}
+
 pub fn check_icon(p: &Painter, center: Pos2, r: f32, bg: Color32, fg: Color32) {
     p.circle_filled(center, r, bg);
     let s = r / 9.0;

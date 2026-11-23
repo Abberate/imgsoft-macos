@@ -114,8 +114,14 @@ impl ImgSoftApp {
                 done_at: None,
             },
         };
-        if let Some(src) = env_path("IMGSOFT_SOURCE") {
-            app.set_source(if src.is_dir() { Input::Folder(src) } else { Input::Files(vec![src]) }, &cc.egui_ctx);
+        // One folder, or several paths separated by ':' (a selection).
+        if let Some(raw) = std::env::var_os("IMGSOFT_SOURCE") {
+            let paths: Vec<PathBuf> = std::env::split_paths(&raw).collect();
+            let input = match paths.as_slice() {
+                [one] if one.is_dir() => Input::Folder(one.clone()),
+                many => Input::Files(many.to_vec()),
+            };
+            app.set_source(input, &cc.egui_ctx);
         }
         if let Some(out) = env_path("IMGSOFT_OUTPUT") {
             app.output = Some(out);
@@ -157,9 +163,22 @@ impl ImgSoftApp {
         self.scan = Some(worker::scan(input, out, self.settings.clone(), ctx.clone()));
     }
 
-    fn pick_source(&mut self, ctx: &egui::Context) {
+    fn pick_folder(&mut self, ctx: &egui::Context) {
         if let Some(dir) = rfd::FileDialog::new().set_title("Dossier d'images à compresser").pick_folder() {
             self.set_source(Input::Folder(dir), ctx);
+        }
+    }
+
+    /// One image or several (Cmd/Shift-click in the open panel).
+    fn pick_images(&mut self, ctx: &egui::Context) {
+        let mut extensions: Vec<&str> = SourceFormat::RASTER_EXTENSIONS.to_vec();
+        extensions.extend_from_slice(SourceFormat::COPY_EXTENSIONS);
+        let files = rfd::FileDialog::new()
+            .set_title("Images à compresser (sélection multiple possible)")
+            .add_filter("Images", &extensions)
+            .pick_files();
+        if let Some(files) = files.filter(|f| !f.is_empty()) {
+            self.set_source(Input::Files(files), ctx);
         }
     }
 
@@ -282,9 +301,11 @@ impl ImgSoftApp {
             )
         });
         if !dropped.is_empty() && !self.locked() {
+            // One folder: mirrored as is. Anything else (one image, several, images and
+            // folders mixed): a selection.
             let input = match dropped.as_slice() {
                 [one] if one.is_dir() => Input::Folder(one.clone()),
-                many => Input::Files(many.iter().filter(|p| p.is_file()).cloned().collect()),
+                many => Input::Files(many.to_vec()),
             };
             self.set_source(input, ui.ctx());
         }
@@ -373,37 +394,34 @@ impl ImgSoftApp {
         // Source.
         y += w::section_label(p, pos2(x0, y), "Images à compresser");
         let r = Rect::from_min_size(pos2(x0, y), vec2(cw, 78.0));
-        let resp = w::hit(ui, r, "source-box", !locked);
         match &self.source {
             None => {
-                let c = if resp.hovered() { pl.accent } else { pl.text_faint };
-                p.rect_filled(r, 12.0, if resp.hovered() { pl.accent_soft } else { pl.bg });
-                w::dashed_rect(p, r, 12.0, c, 1.3);
-                w::folder_icon(p, pos2(r.left() + 34.0, r.center().y), 26.0, pl.accent);
+                p.rect_filled(r, 12.0, pl.bg);
+                w::dashed_rect(p, r, 12.0, pl.text_faint, 1.3);
+                w::image_icon(p, pos2(r.left() + 34.0, r.center().y), 26.0, pl.accent);
                 p.text(
                     pos2(r.left() + 60.0, r.center().y - 10.0),
                     Align2::LEFT_CENTER,
-                    "Choisir un dossier…",
+                    "Un dossier, une ou plusieurs images",
                     medium(13.5),
                     pl.text,
                 );
                 p.text(
                     pos2(r.left() + 60.0, r.center().y + 10.0),
                     Align2::LEFT_CENTER,
-                    "ou glissez-le dans la fenêtre",
+                    "à glisser dans la fenêtre, ou à choisir :",
                     regular(11.5),
                     pl.text_dim,
                 );
             }
             Some(input) => {
-                p.rect(
-                    r,
-                    12.0,
-                    if resp.hovered() { pl.accent_soft } else { pl.bg },
-                    Stroke::new(1.0, pl.stroke),
-                    egui::StrokeKind::Inside,
-                );
-                w::folder_icon(p, pos2(r.left() + 30.0, r.center().y), 24.0, pl.accent);
+                p.rect(r, 12.0, pl.bg, Stroke::new(1.0, pl.stroke), egui::StrokeKind::Inside);
+                let icon = pos2(r.left() + 30.0, r.center().y);
+                if matches!(input, Input::Folder(_)) {
+                    w::folder_icon(p, icon, 24.0, pl.accent);
+                } else {
+                    w::image_icon(p, icon, 24.0, pl.accent);
+                }
                 let (name, sub) = describe_input(input);
                 let tw = cw - 70.0;
                 let g = w::fitted(p, &name, medium(13.5), pl.text, tw);
@@ -411,7 +429,7 @@ impl ImgSoftApp {
                 let g = w::fitted_middle(p, &sub, regular(11.0), pl.text_faint, tw);
                 p.galley(pos2(r.left() + 54.0, r.top() + 32.0), g, pl.text_faint);
                 let line = if self.scan.is_some() {
-                    "Analyse du dossier…".to_string()
+                    "Analyse…".to_string()
                 } else {
                     let n = self.jobs.iter().filter(|j| j.kind == JobKind::Convert).count();
                     let total: u64 = self.jobs.iter().map(|j| j.bytes).sum();
@@ -420,10 +438,18 @@ impl ImgSoftApp {
                 p.text(pos2(r.left() + 54.0, r.top() + 52.0), Align2::LEFT_TOP, line, medium(11.5), pl.accent);
             }
         }
-        if resp.clicked() {
-            self.pick_source(&ctx);
+        y += 78.0 + 8.0;
+        // Two ways in: a whole folder, or a picked set of images (one or many).
+        let bw = (cw - 8.0) / 2.0;
+        let folder_btn = Rect::from_min_size(pos2(x0, y), vec2(bw, 34.0));
+        let images_btn = Rect::from_min_size(pos2(x0 + bw + 8.0, y), vec2(bw, 34.0));
+        if w::button(ui, p, folder_btn, "Choisir un dossier…", ButtonKind::Secondary, !locked) {
+            self.pick_folder(&ctx);
         }
-        y += 78.0 + 18.0;
+        if w::button(ui, p, images_btn, "Choisir des images…", ButtonKind::Secondary, !locked) {
+            self.pick_images(&ctx);
+        }
+        y += 34.0 + 20.0;
 
         // Output.
         y += w::section_label(p, pos2(x0, y), "Enregistrer dans");
@@ -885,32 +911,44 @@ impl ImgSoftApp {
 
     fn empty_state(&mut self, ui: &Ui, p: &Painter, area: Rect) {
         let pl = pal();
-        let zone_h = (area.height() - 150.0).clamp(240.0, 360.0);
+        let zone_h = (area.height() - 150.0).clamp(280.0, 380.0);
         let zone = Rect::from_min_size(area.min, vec2(area.width(), zone_h));
-        let resp = w::hit(ui, zone, "drop-zone", true);
-        p.rect_filled(zone, 18.0, if resp.hovered() { pl.accent_soft } else { pl.surface });
-        w::dashed_rect(
-            p,
-            zone.shrink(1.0),
-            18.0,
-            if resp.hovered() { pl.accent } else { pl.text_faint.gamma_multiply(0.7) },
-            1.5,
-        );
-        let c = zone.center() - vec2(0.0, 52.0);
+        p.rect_filled(zone, 18.0, pl.surface);
+        w::dashed_rect(p, zone.shrink(1.0), 18.0, pl.text_faint.gamma_multiply(0.7), 1.5);
+        let c = zone.center() - vec2(0.0, 70.0);
         p.circle_filled(c, 46.0, pl.accent_soft);
         w::logo_symbol(p, c, 64.0, pl.accent, Color32::from_rgb(0xFF, 0xA8, 0x4C), pl.accent);
-        p.text(c + vec2(0.0, 66.0), Align2::CENTER_TOP, "Glissez un dossier d'images ici", semibold(18.0), pl.text);
-        p.text(c + vec2(0.0, 94.0), Align2::CENTER_TOP, "ou cliquez pour le choisir", regular(13.0), pl.text_dim);
         p.text(
-            c + vec2(0.0, 126.0),
+            c + vec2(0.0, 64.0),
+            Align2::CENTER_TOP,
+            "Glissez un dossier, une ou plusieurs images",
+            semibold(18.0),
+            pl.text,
+        );
+        p.text(
+            c + vec2(0.0, 92.0),
             Align2::CENTER_TOP,
             "JPEG · PNG · HEIC · WebP · AVIF · TIFF · GIF · BMP",
             medium(11.5),
             pl.text_faint,
         );
-        if resp.clicked() {
-            self.pick_source(ui.ctx());
+        let bw = 190.0;
+        let by = c.y + 124.0;
+        let folder_btn = Rect::from_min_size(pos2(c.x - bw - 6.0, by), vec2(bw, 40.0));
+        let images_btn = Rect::from_min_size(pos2(c.x + 6.0, by), vec2(bw, 40.0));
+        if w::button(ui, p, folder_btn, "Choisir un dossier…", ButtonKind::Primary, true) {
+            self.pick_folder(ui.ctx());
         }
+        if w::button(ui, p, images_btn, "Choisir des images…", ButtonKind::Secondary, true) {
+            self.pick_images(ui.ctx());
+        }
+        p.text(
+            pos2(c.x, by + 54.0),
+            Align2::CENTER_TOP,
+            "Plusieurs images : maintenez Cmd ou Maj en cliquant dans la fenêtre de choix",
+            regular(11.5),
+            pl.text_faint,
+        );
 
         let features = [
             ("Qualité vérifiée", "Chaque image est mesurée (SSIMULACRA2) : on garde la plus légère qui reste fidèle."),
@@ -1285,10 +1323,19 @@ fn describe_input(input: &Input) -> (String, String) {
             dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| dir.display().to_string()),
             dir.parent().map(tilde).unwrap_or_default(),
         ),
-        Input::Files(files) => (
-            plural(files.len(), "fichier déposé", "fichiers déposés"),
-            files.first().and_then(|f| f.parent()).map(tilde).unwrap_or_default(),
-        ),
+        Input::Files(files) => {
+            let parent = files.first().and_then(|f| f.parent());
+            let same_folder = files.iter().all(|f| f.parent() == parent);
+            let place = match parent {
+                Some(dir) if same_folder => tilde(dir),
+                Some(_) => "plusieurs dossiers".into(),
+                None => String::new(),
+            };
+            match files.as_slice() {
+                [one] => (one.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(), place),
+                many => (plural(many.len(), "élément sélectionné", "éléments sélectionnés"), place),
+            }
+        }
     }
 }
 

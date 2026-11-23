@@ -79,8 +79,8 @@ impl eframe::App for DmgBackground {
                 "First launch: Settings > Privacy & Security > Open Anyway",
             ),
             (
-                "Glissez un dossier d'images dans la fenêtre, choisissez la destination, c'est tout",
-                "Drop a folder of images on the window, pick a destination, done",
+                "Glissez un dossier ou des images dans la fenêtre, choisissez la destination, c'est tout",
+                "Drop a folder or some images on the window, pick a destination, done",
             ),
         ];
         let mut sy = 328.0;

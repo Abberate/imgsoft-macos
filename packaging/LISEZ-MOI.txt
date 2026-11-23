@@ -1,4 +1,4 @@
-IMGSOFT pour macOS — version 1.0.0
+IMGSOFT pour macOS — version 1.0.1
 Compresse les images de vos clients pour le web : la plus légère possible,
 sans différence visible.
 
@@ -12,9 +12,12 @@ INSTALLATION
    (Sur macOS 14 ou plus ancien : clic droit sur l'app > Ouvrir.)
 
 UTILISATION
-1. Glissez un dossier d'images (ou des fichiers) dans la fenêtre.
-2. Le dossier de sortie est proposé à côté (« nom-web ») ; changez-le si
-   besoin. Les originaux ne sont jamais modifiés.
+1. Glissez dans la fenêtre un dossier, une image ou plusieurs images,
+   ou utilisez « Choisir un dossier… » / « Choisir des images… »
+   (plusieurs images : maintenez Cmd ou Maj en cliquant).
+2. Le dossier de sortie est proposé à côté (« nom-web » ou
+   « images-web ») ; changez-le si besoin. Les originaux ne sont jamais
+   modifiés.
 3. Choisissez la destination : Site web moderne (AVIF/WebP), WordPress
    (WebP), Compatibilité max (JPEG/PNG) ou Archive HD (format d'origine).
 4. Cliquez « Compresser ». Cliquez ensuite sur une image pour comparer
@@ -49,7 +52,7 @@ CRÉDITS
 
 -----------------------------------------------------------------------
 
-IMGSOFT for macOS — version 1.0.0
+IMGSOFT for macOS — version 1.0.1
 Compresses your clients' images for the web: as small as possible, with
 no visible difference.
 
@@ -62,9 +65,11 @@ INSTALLATION
    (macOS 14 or older: right-click the app > Open.)
 
 USE
-1. Drop a folder of images (or files) on the window.
-2. An output folder is suggested next to it ("name-web"); change it if
-   needed. Originals are never modified.
+1. Drop a folder, one image or several images on the window, or use
+   "Choisir un dossier…" / "Choisir des images…" (several images: hold
+   Cmd or Shift while clicking).
+2. An output folder is suggested next to it ("name-web" or
+   "images-web"); change it if needed. Originals are never modified.
 3. Pick a destination: Modern website (AVIF/WebP), WordPress (WebP),
    Maximum compatibility (JPEG/PNG) or HD archive (original format).
 4. Click "Compresser". Then click an image to compare the original and

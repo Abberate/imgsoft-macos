@@ -1054,7 +1054,7 @@ checksum = "6e44b0a4eaa4c82f441d50a963f2d5f05a787240aeee097597033e72accfd22f"
 
 [[package]]
 name = "imgsoft"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "eframe",
  "egui",
@@ -1065,14 +1065,14 @@ dependencies = [
 
 [[package]]
 name = "imgsoft-cli"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "imgsoft-core",
 ]
 
 [[package]]
 name = "imgsoft-core"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "deunicode",
  "fast_image_resize",

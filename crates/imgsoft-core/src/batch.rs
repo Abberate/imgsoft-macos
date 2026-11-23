@@ -1,4 +1,4 @@
-//! Folder scanning, output naming and parallel processing of a whole batch.
+//! Folder and file-list scanning, output naming and parallel processing of a whole batch.
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -17,7 +17,8 @@ use crate::settings::Settings;
 pub enum Input {
     /// A folder, scanned recursively (sub-folders are mirrored in the output).
     Folder(PathBuf),
-    /// Loose files (e.g. dropped on the window).
+    /// One or several images picked or dropped together. A folder in the list is scanned
+    /// recursively and mirrored under its own name.
     Files(Vec<PathBuf>),
 }
 
@@ -38,42 +39,64 @@ fn kind_of(path: &Path, s: &Settings) -> Option<JobKind> {
     }
 }
 
+/// (absolute path, path shown and mirrored in the output, kind, size)
+type Found = (PathBuf, PathBuf, JobKind, u64);
+
+const SAME_FOLDER: &str = "le dossier de sortie doit être différent du dossier des images";
+
+/// Every image under `root`, with paths relative to it prefixed by `prefix`.
+fn walk(root: &Path, prefix: &Path, out_canon: &Path, s: &Settings, found: &mut Vec<Found>) -> Result<(), Error> {
+    let root = std::fs::canonicalize(root)?;
+    if root == out_canon {
+        return Err(Error::new(SAME_FOLDER));
+    }
+    let walker = walkdir::WalkDir::new(&root).follow_links(true).sort_by_file_name().into_iter();
+    for entry in walker.filter_entry(|e| e.depth() == 0 || (!is_hidden(e.path()) && !e.path().starts_with(out_canon))) {
+        let Ok(entry) = entry else { continue };
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        let Some(kind) = kind_of(path, s) else { continue };
+        let rel = prefix.join(path.strip_prefix(&root).unwrap_or(path));
+        let bytes = entry.metadata().map(|m| m.len()).unwrap_or(0);
+        found.push((path.to_path_buf(), rel, kind, bytes));
+    }
+    Ok(())
+}
+
 /// Lists the work: every image of the input with its unique output name.
 pub fn plan(input: &Input, output_root: &Path, s: &Settings) -> Result<Vec<Job>, Error> {
     let out_canon = std::fs::canonicalize(output_root).unwrap_or_else(|_| output_root.to_path_buf());
-    let mut found: Vec<(PathBuf, PathBuf, JobKind, u64)> = Vec::new(); // (abs, rel, kind, bytes)
+    let mut found: Vec<Found> = Vec::new();
 
     match input {
-        Input::Folder(root) => {
-            let root = std::fs::canonicalize(root)?;
-            if root == out_canon {
-                return Err(Error::new("le dossier de sortie doit être différent du dossier source"));
-            }
-            let walker = walkdir::WalkDir::new(&root).follow_links(true).sort_by_file_name().into_iter();
-            for entry in
-                walker.filter_entry(|e| e.depth() == 0 || (!is_hidden(e.path()) && !e.path().starts_with(&out_canon)))
-            {
-                let Ok(entry) = entry else { continue };
-                if !entry.file_type().is_file() {
+        Input::Folder(root) => walk(root, Path::new(""), &out_canon, s, &mut found)?,
+        Input::Files(paths) => {
+            for path in paths {
+                if path.is_dir() {
+                    let name = path.file_name().map(PathBuf::from).unwrap_or_default();
+                    walk(path, &name, &out_canon, s, &mut found)?;
                     continue;
                 }
-                let path = entry.path();
-                let Some(kind) = kind_of(path, s) else { continue };
-                let rel = path.strip_prefix(&root).unwrap_or(path).to_path_buf();
-                let bytes = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                found.push((path.to_path_buf(), rel, kind, bytes));
-            }
-        }
-        Input::Files(files) => {
-            for path in files {
                 let Some(kind) = kind_of(path, s) else { continue };
                 let Ok(meta) = std::fs::metadata(path) else { continue };
                 if !meta.is_file() {
                     continue;
                 }
+                // Outputs land at the top of the output folder: if that is the images' own
+                // folder, an optimised file could replace its original.
+                let parent = path.parent().and_then(|d| std::fs::canonicalize(d).ok());
+                if parent.as_deref() == Some(out_canon.as_path()) {
+                    return Err(Error::new(SAME_FOLDER));
+                }
                 let rel = PathBuf::from(path.file_name().unwrap_or_default());
                 found.push((path.clone(), rel, kind, meta.len()));
             }
+            // Same image picked twice (or a file and its folder): keep the first.
+            let mut seen = HashSet::new();
+            found.retain(|(abs, ..)| seen.insert(std::fs::canonicalize(abs).unwrap_or_else(|_| abs.clone())));
+            found.sort_by_cached_key(|(_, rel, ..)| rel.to_string_lossy().to_lowercase());
         }
     }
 
@@ -271,6 +294,21 @@ mod tests {
         assert_eq!(names, vec!["photo-1", "logo", "photo-1-2", "equipe-ete/img-01"]);
         assert_eq!(jobs[1].kind, JobKind::Copy);
         assert!(plan(&Input::Folder(src.clone()), &src, &Settings::default()).is_err());
+
+        // A single image, several images, and images mixed with a folder.
+        let one = plan(&Input::Files(vec![src.join("Photo 1.JPG")]), &dir.join("web"), &Settings::default()).unwrap();
+        assert_eq!(one.len(), 1);
+        assert_eq!(one[0].stem, "photo-1");
+        let files =
+            vec![src.join("photo 1.png"), src.join("Équipe Été"), src.join("Photo 1.JPG"), src.join("notes.txt")];
+        let mixed = plan(&Input::Files(files.clone()), &dir.join("web"), &Settings::default()).unwrap();
+        let names: Vec<String> = mixed.iter().map(|j| j.out_dir.join(&j.stem).display().to_string()).collect();
+        assert_eq!(names, vec!["photo-1", "photo-1-2", "equipe-ete/img-01"]);
+        // The same file twice is listed once.
+        let twice = vec![src.join("logo.svg"), src.join("logo.svg")];
+        assert_eq!(plan(&Input::Files(twice), &dir.join("web"), &Settings::default()).unwrap().len(), 1);
+        // Writing next to the selected images could overwrite them: refused.
+        assert!(plan(&Input::Files(files), &src, &Settings::default()).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

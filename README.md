@@ -1,6 +1,6 @@
-# ImgSoft — compresseur d'images pour le web (macOS, Rust) — v1.0.0
+# ImgSoft — compresseur d'images pour le web (macOS, Rust) — v1.0.1
 
-ImgSoft prépare les images d'un client pour un site web : vous glissez un dossier, vous choisissez où enregistrer le résultat, et chaque image ressort **aussi légère que possible sans différence visible**, dans le format le plus adapté à sa destination.
+ImgSoft prépare les images d'un client pour un site web : vous glissez un dossier, une image ou plusieurs images, vous choisissez où enregistrer le résultat, et chaque image ressort **aussi légère que possible sans différence visible**, dans le format le plus adapté à sa destination.
 
 | Résultats | Comparaison avant / après |
 |---|---|
@@ -54,8 +54,8 @@ Tous les réglages restent modifiables un par un (format, qualité, taille, effo
 
 ## Fonctions
 
-* Glisser-déposer d'un dossier (parcours récursif) ou de fichiers.
-* Dossier de sortie proposé automatiquement (`<dossier>-web`), sous-dossiers reproduits ; **les originaux ne sont jamais modifiés**.
+* Un **dossier** entier (parcouru avec ses sous-dossiers), **une seule image** ou **plusieurs images** : glisser-déposer, ou boutons « Choisir un dossier… » / « Choisir des images… » (sélection multiple avec Cmd ou Maj). Un mélange d'images et de dossiers glissés ensemble fonctionne aussi.
+* Dossier de sortie proposé automatiquement (`<dossier>-web`, ou `images-web` à côté des images choisies), sous-dossiers reproduits ; **les originaux ne sont jamais modifiés** (une sortie dans le dossier même des images est refusée).
 * **Variantes responsive** pour `srcset` (`photo-640w.avif`, `photo-1024w.avif`…).
 * **Manifeste JSON** optionnel (`imgsoft-manifest.json`) : largeur, hauteur, poids et variantes de chaque image, pour écrire `<img width height srcset>` sans décalage de mise en page.
 * Copie des SVG, ICO et animations (GIF/WebP/APNG animés) telles quelles, pour un dossier complet.
@@ -66,7 +66,7 @@ Tous les réglages restent modifiables un par un (format, qualité, taille, effo
 
 ## Installation
 
-Téléchargez `ImgSoft-1.0.0.dmg`, ouvrez-le et glissez ImgSoft sur Applications. L'app n'est pas signée par un développeur Apple identifié : au premier lancement, *Réglages Système > Confidentialité et sécurité > Ouvrir quand même*.
+Téléchargez `ImgSoft-1.0.1.dmg`, ouvrez-le et glissez ImgSoft sur Applications. L'app n'est pas signée par un développeur Apple identifié : au premier lancement, *Réglages Système > Confidentialité et sécurité > Ouvrir quand même*.
 
 **macOS 11 Big Sur ou plus récent**, Apple Silicon et Intel (binaire universel). La vérification des fichiers AVIF utilise le décodeur de macOS 13+ ; sur macOS 11–12, ImgSoft applique un réglage AVIF calibré sans mesure.
 
@@ -74,6 +74,7 @@ Téléchargez `ImgSoft-1.0.0.dmg`, ouvrez-le et glissez ImgSoft sur Applications
 
 ```sh
 /Applications/ImgSoft.app/Contents/MacOS/imgsoft "Photos client" -o "Photos client-web"
+imgsoft accueil.heic equipe.jpg logo.png -o web     # une ou plusieurs images
 imgsoft photos -o web -f webp -q 80 -m 1920 -w 640,1024 --manifest
 ```
 
@@ -117,7 +118,7 @@ scripts/          bundle.sh, make_dmg.sh, dmg_layout.py
 ### Vérifications visuelles
 
 L'app se pilote par variables d'environnement pour produire des captures sans clic :
-`IMGSOFT_SOURCE=<dossier> IMGSOFT_OUTPUT=<dossier> IMGSOFT_AUTORUN=1 IMGSOFT_COMPARE=<n> IMGSOFT_THEME=dark IMGSOFT_WINDOW=1400x860 IMGSOFT_SCREENSHOT=capture.png`.
+`IMGSOFT_SOURCE=<dossier ou chemins séparés par :> IMGSOFT_OUTPUT=<dossier> IMGSOFT_AUTORUN=1 IMGSOFT_COMPARE=<n> IMGSOFT_THEME=dark IMGSOFT_WINDOW=1400x860 IMGSOFT_SCREENSHOT=capture.png`.
 Ces lancements utilisent des réglages temporaires et ne touchent pas à vos préférences.
 
 ## Logo
